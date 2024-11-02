@@ -1,0 +1,110 @@
+'use client'
+
+import React, { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Send } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+interface Message {
+  id: number
+  text: string
+}
+
+export default function Component() {
+  const [messages, setMessages] = useState<Message[]>([])
+  const [inputText, setInputText] = useState('')
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const initialMessages = [
+      { id: 1, text: '欢迎来到留言板！' },
+      { id: 2, text: '这是一条示例消息' },
+      { id: 3, text: '你可以在这里发送消息' },
+    ]
+    setMessages(initialMessages)
+  }, [])
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (inputText.trim()) {
+      const newMessage = { id: Date.now(), text: inputText.trim() }
+      setMessages(prev => [...prev, newMessage])
+      setInputText('')
+    }
+  }
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-4">
+      {/* 背景动画 */}
+      <motion.div
+        className="absolute inset-0 z-0"
+        animate={{
+          background: [
+            'linear-gradient(to right, #8a2387, #e94057, #f27121)',
+            'linear-gradient(to right, #4facfe, #00f2fe)',
+            'linear-gradient(to right, #8a2387, #e94057, #f27121)',
+          ],
+        }}
+        transition={{ duration: 10, repeat: Infinity, repeatType: 'reverse' }}
+      />
+
+      <div className="z-10 w-full max-w-md bg-white bg-opacity-20 backdrop-blur-lg rounded-xl shadow-lg overflow-hidden">
+        {/* 弹幕区域 */}
+        <div className="h-48 overflow-hidden relative">
+          <AnimatePresence>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                className="absolute whitespace-nowrap text-white text-opacity-80 font-semibold"
+                initial={{ right: "-100%", y: Math.random() * 100 + "%" }}
+                animate={{ right: "100%" }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 10, ease: "linear" }}
+              >
+                {message.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* 消息列表区域 */}
+        <div 
+          ref={containerRef}
+          className="h-64 overflow-y-auto p-4 space-y-4"
+        >
+          <AnimatePresence>
+            {messages.map((message) => (
+              <motion.div
+                key={message.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="bg-white bg-opacity-50 rounded-lg p-3 shadow backdrop-blur-sm"
+              >
+                {message.text}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* 输入区域 */}
+        <form onSubmit={handleSubmit} className="p-4 bg-white bg-opacity-50 backdrop-blur-sm">
+          <div className="flex space-x-2">
+            <Input
+              type="text"
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="输入你的留言..."
+              className="flex-1 bg-white bg-opacity-50"
+            />
+            <Button type="submit" size="icon" className="bg-purple-600 hover:bg-purple-700">
+              <Send className="h-4 w-4" />
+              <span className="sr-only">发送</span>
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
